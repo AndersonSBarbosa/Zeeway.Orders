@@ -34,20 +34,35 @@ public sealed class WebhooksController : ControllerBase
         if (!ValidSignature(body, signature, secret))
             return Unauthorized();
 
-        var payload = System.Text.Json.JsonSerializer.Deserialize<PaymentWebhook>(
-            body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        if (payload is null || payload.EventId is null || payload.OrderId == Guid.Empty)
+        string? eventId;
+        Guid orderId;
+        string? type;
+        using (var payload = System.Text.Json.JsonDocument.Parse(body))
+        {
+            var root = payload.RootElement;
+            eventId = root.TryGetProperty("event_id", out var eventElement)
+                ? eventElement.GetString()
+                : null;
+            orderId = root.TryGetProperty("order_id", out var orderElement)
+                && Guid.TryParse(orderElement.GetString(), out var parsedOrderId)
+                    ? parsedOrderId
+                    : Guid.Empty;
+            type = root.TryGetProperty("type", out var typeElement)
+                ? typeElement.GetString()
+                : null;
+        }
+        if (eventId is null || orderId == Guid.Empty)
             return BadRequest();
 
-        if (await _db.PaymentEvents.AnyAsync(x => x.EventId == payload.EventId, cancellationToken))
+        if (await _db.PaymentEvents.AnyAsync(x => x.EventId == eventId, cancellationToken))
             return Ok();
 
-        var order = await _db.Orders.SingleOrDefaultAsync(x => x.Id == payload.OrderId, cancellationToken);
+        var order = await _db.Orders.SingleOrDefaultAsync(x => x.Id == orderId, cancellationToken);
         if (order is null) return NotFound();
 
         try
         {
-            var target = payload.Type switch
+            var target = type switch
             {
                 "payment.approved" => OrderStatus.Paid,
                 "payment.failed" => OrderStatus.Failed,
@@ -58,13 +73,13 @@ public sealed class WebhooksController : ControllerBase
             if (order.ApplyPaymentStatus(target.Value))
             {
                 await _db.PaymentEvents.AddAsync(
-                    new PaymentEventRecord(payload.EventId, order.Id, payload.Type), cancellationToken);
+                    new PaymentEventRecord(eventId, order.Id, type!), cancellationToken);
                 await _db.SaveChangesAsync(cancellationToken);
             }
             else
             {
                 await _db.PaymentEvents.AddAsync(
-                    new PaymentEventRecord(payload.EventId, order.Id, payload.Type), cancellationToken);
+                    new PaymentEventRecord(eventId, order.Id, type!), cancellationToken);
                 await _db.SaveChangesAsync(cancellationToken);
             }
             return Ok();

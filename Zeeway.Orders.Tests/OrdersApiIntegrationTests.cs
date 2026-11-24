@@ -32,7 +32,8 @@ public sealed class OrdersApiIntegrationTests : IClassFixture<OrdersApiFactory>
         firstRequest.Content = JsonContent.Create(request);
 
         var first = await client.SendAsync(firstRequest);
-        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+        Assert.True(first.StatusCode == HttpStatusCode.Created,
+            await first.Content.ReadAsStringAsync());
         var firstJson = await first.Content.ReadFromJsonAsync<JsonElement>();
         var id = firstJson.GetProperty("id").GetGuid();
 
@@ -90,6 +91,8 @@ public sealed class OrdersApiIntegrationTests : IClassFixture<OrdersApiFactory>
 
 public sealed class OrdersApiFactory : WebApplicationFactory<Program>
 {
+    private readonly string _databaseName = $"OrdersApi-{Guid.NewGuid()}";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -100,7 +103,7 @@ public sealed class OrdersApiFactory : WebApplicationFactory<Program>
             if (descriptor is not null) services.Remove(descriptor);
 
             services.AddDbContext<OrdersDbContext>(options =>
-                options.UseInMemoryDatabase($"OrdersApi-{Guid.NewGuid()}"));
+                options.UseInMemoryDatabase(_databaseName));
         });
     }
 }

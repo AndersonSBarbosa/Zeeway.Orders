@@ -27,6 +27,12 @@ public sealed class OrdersController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.CustomerEmail))
             return BadRequest();
+        if (request.Items is null || request.Items.Count == 0)
+            return BadRequest();
+        if (request.Items.Any(x => string.IsNullOrWhiteSpace(x.Name)
+            || x.Quantity <= 0
+            || x.UnitPrice < 0))
+            return BadRequest();
 
         if (!Request.Headers.TryGetValue("Idempotency-Key", out var idempotencyHeader)
             || string.IsNullOrWhiteSpace(idempotencyHeader.First()))

@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: zeeway_orders
+      POSTGRES_USER: zeeway
+      POSTGRES_PASSWORD: zeeway
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zeeway -d zeeway_orders"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    environment:
+      ConnectionStrings__Orders: Host=postgres;Port=5432;Database=zeeway_orders;Username=zeeway;Password=zeeway
+      PaymentGateway__WebhookSecret: development-webhook-secret
+      PaymentGateway__UseFakeGateway: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy

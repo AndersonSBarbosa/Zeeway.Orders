@@ -73,6 +73,13 @@ app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthC
 });
 app.MapHealthChecks("/health/ready");
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
+    if (db.Database.IsRelational())
+        await db.Database.MigrateAsync();
+}
+
 app.Run();
 
 public partial class Program;
