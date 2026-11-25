@@ -3,25 +3,29 @@ using System.Text.Json.Serialization;
 namespace Zeeway.Pedidos.Api;
 
 public sealed record CreatePedidoItemDto(
-    string Name,
-    int Quantity,
-    decimal UnitPrice);
+    [property: JsonPropertyName("name")] string Nome,
+    [property: JsonPropertyName("quantity")] int Quantidade,
+    [property: JsonPropertyName("unitPrice")] decimal PrecoUnitario);
 
 public sealed record CreatePedidoRequest(
-    string CustomerEmail,
+    [property: JsonPropertyName("customerEmail")] string EmailCliente,
     IReadOnlyCollection<CreatePedidoItemDto> Items);
 
 public sealed record PedidoResponse(
     Guid Id,
-    decimal TotalAmount,
-    string CustomerEmail,
+    [property: JsonPropertyName("totalAmount")] decimal ValorTotal,
+    [property: JsonPropertyName("customerEmail")] string EmailCliente,
     string Status,
     [property: JsonPropertyName("paymentId")] string? PagamentoId,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt,
+    [property: JsonPropertyName("createdAt")] DateTimeOffset DataCreated,
+    [property: JsonPropertyName("updatedAt")] DateTimeOffset DataUpdated,
     IReadOnlyCollection<PedidoItemResponse> Items);
 
-public sealed record PedidoItemResponse(Guid Id, string Name, int Quantity, decimal UnitPrice);
+public sealed record PedidoItemResponse(
+    Guid Id,
+    [property: JsonPropertyName("name")] string Nome,
+    [property: JsonPropertyName("quantity")] int Quantidade,
+    [property: JsonPropertyName("unitPrice")] decimal PrecoUnitario);
 
 public sealed record PagedPedidosResponse(
     IReadOnlyCollection<PedidoResponse> Items,

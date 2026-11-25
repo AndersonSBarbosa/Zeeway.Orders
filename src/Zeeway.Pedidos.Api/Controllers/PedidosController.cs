@@ -20,14 +20,11 @@ public sealed class PedidosController : ControllerBase
 
         try
         {
-            if (string.IsNullOrWhiteSpace(request.CustomerEmail))
+            if (string.IsNullOrWhiteSpace(request.EmailCliente))
                 return BadRequest();
             if (request.Items is null || request.Items.Count == 0)
                 return BadRequest();
-            if (request.Items.Any(x => x is null
-                || string.IsNullOrWhiteSpace(x.Name)
-                || x.Quantity <= 0
-                || x.UnitPrice < 0))
+            if (request.Items.Any(x => x is null || string.IsNullOrWhiteSpace(x.Nome) || x.Quantidade <= 0 || x.PrecoUnitario < 0))
                 return BadRequest();
 
             if (!Request.Headers.TryGetValue("Idempotency-Key", out var idempotencyHeader)
@@ -40,8 +37,8 @@ public sealed class PedidosController : ControllerBase
 
             var pedido = await _pedidos.CreateAsync(
                 new CreatePedidoCommand(
-                    request.CustomerEmail,
-                    request.Items.Select(x => new CreatePedidoItemCommand(x.Name, x.Quantity, x.UnitPrice)).ToList(),
+                    request.EmailCliente,
+                    request.Items.Select(x => new CreatePedidoItemCommand(x.Nome, x.Quantidade, x.PrecoUnitario)).ToList(),
                     idempotencyHeader.First()!.Trim()),
                 cancellationToken);
 
