@@ -13,8 +13,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddProblemDetails();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
 
-var connectionString = builder.Configuration.GetConnectionString("Orders")
-    ?? "Host=localhost;Port=5432;Database=zeeway_orders;Username=zeeway;Password=zeeway";
+var connectionString = builder.Configuration.GetConnectionString("Orders");
 
 builder.Services.AddDbContext<PedidosDbContext>(options =>
     options.UseNpgsql(connectionString));
