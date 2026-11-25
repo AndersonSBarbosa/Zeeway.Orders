@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zeeway.Orders.Api;
 using Zeeway.Orders.Infrastructure;
+using Zeeway.Orders.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddProblemDetails();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 var connectionString = builder.Configuration.GetConnectionString("Orders")
     ?? "Host=localhost;Port=5432;Database=zeeway_orders;Username=zeeway;Password=zeeway";

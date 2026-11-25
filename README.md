@@ -2,6 +2,15 @@
 
 API de pedidos em ASP.NET Core 8 com PostgreSQL, EF Core e integracao resiliente a um gateway ficticio.
 
+## Estrutura
+
+- `src/Zeeway.Orders.Api` - endpoints HTTP e configuracao da aplicacao.
+- `src/Zeeway.Orders.Service` - casos de uso e orquestracao de pedidos.
+- `src/Zeeway.Orders.Domain` - entidades e regras de dominio.
+- `src/Zeeway.Orders.Infrastructure` - persistencia e integracao com gateway.
+- `tests/Zeeway.Orders.UnitTests` - testes unitarios.
+- `tests/Zeeway.Orders.IntegrationTests` - testes da API.
+
 ## Como executar
 
 Pre-requisitos: .NET 8 SDK e Docker.
@@ -16,7 +25,7 @@ Execucao local:
 
 ```powershell
 docker compose up postgres
-dotnet run --project Zeeway.Orders.Api
+dotnet run --project src/Zeeway.Orders.Api
 ```
 
 Testes:

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Zeeway.Orders.Infrastructure;
 
-namespace Zeeway.Orders.Tests;
+namespace Zeeway.Orders.IntegrationTests;
 
 public sealed class OrdersApiIntegrationTests : IClassFixture<OrdersApiFactory>
 {

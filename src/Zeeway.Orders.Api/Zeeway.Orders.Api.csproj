@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Zeeway.Orders.Domain\Zeeway.Orders.Domain.csproj" />
     <ProjectReference Include="..\Zeeway.Orders.Infrastructure\Zeeway.Orders.Infrastructure.csproj" />
+    <ProjectReference Include="..\Zeeway.Orders.Service\Zeeway.Orders.Service.csproj" />
   </ItemGroup>
 
 </Project>

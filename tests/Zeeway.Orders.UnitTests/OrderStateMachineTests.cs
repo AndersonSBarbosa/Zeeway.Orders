@@ -1,6 +1,6 @@
 using Zeeway.Orders.Domain;
 
-namespace Zeeway.Orders.Tests;
+namespace Zeeway.Orders.UnitTests;
 
 public sealed class OrderStateMachineTests
 {
