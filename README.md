@@ -1,15 +1,18 @@
-# Zeeway Orders
+# Zeeway Pedidos
 
 API de pedidos em ASP.NET Core 8 com PostgreSQL, EF Core e integracao resiliente a um gateway ficticio.
 
 ## Estrutura
 
-- `src/Zeeway.Orders.Api` - endpoints HTTP e configuracao da aplicacao.
-- `src/Zeeway.Orders.Service` - casos de uso e orquestracao de pedidos.
-- `src/Zeeway.Orders.Domain` - entidades e regras de dominio.
-- `src/Zeeway.Orders.Infrastructure` - persistencia e integracao com gateway.
-- `tests/Zeeway.Orders.UnitTests` - testes unitarios.
-- `tests/Zeeway.Orders.IntegrationTests` - testes da API.
+- `src/Zeeway.Pedidos.Api` - endpoints HTTP e configuracao da aplicacao.
+- `src/Zeeway.Pedidos.Service` - casos de uso e orquestracao de pedidos.
+- `src/Zeeway.Pedidos.Domain` - entidades e regras de dominio.
+- `src/Zeeway.Pedidos.Infrastructure` - persistencia e integracao com gateway.
+- `tests/Zeeway.Pedidos.UnitTests` - testes unitarios.
+- `tests/Zeeway.Pedidos.IntegrationTests` - testes da API.
+
+Os nomes internos foram padronizados para `Pedidos` e `Pagamentos`; rotas, JSON,
+configuracoes e nomes de tabelas/colunas existentes foram mantidos para preservar compatibilidade.
 
 ## Como executar
 
@@ -25,13 +28,13 @@ Execucao local:
 
 ```powershell
 docker compose up postgres
-dotnet run --project src/Zeeway.Orders.Api
+dotnet run --project src/Zeeway.Pedidos.Api
 ```
 
 Testes:
 
 ```powershell
-dotnet test Zeeway.Orders.sln
+dotnet test Zeeway.Pedidos.sln
 ```
 
 ## Endpoints
@@ -73,7 +76,7 @@ Tipos: `payment.approved` e `payment.failed`.
 - PostgreSQL foi escolhido por transacoes, indices unicos e concorrencia.
 - A chave de idempotencia e persistida junto ao pedido em transacao unica; repeticoes nao criam outro pedido nem outra cobranca.
 - A maquina de estados permite somente `Pending -> Paid` e `Pending -> Failed`. Webhooks duplicados sao tratados por `event_id`; eventos fora de ordem nao alteram estado final.
-- PostgreSQL `xmin` funciona como token de concorrencia otimista em `Order`.
+- PostgreSQL `xmin` funciona como token de concorrencia otimista em `Pedido`.
 - O gateway usa timeout, retry com backoff e circuit breaker via `Microsoft.Extensions.Http.Resilience`.
 - Um handler HTTP fake permite demonstrar o fluxo sem dependencia externa.
 - Erros usam `ProblemDetails`. Todas as respostas incluem `X-Correlation-ID`, tambem registrado em logs estruturados.
@@ -85,7 +88,7 @@ Nao implementei Outbox, reconciliação assíncrona ou OpenTelemetry. Uma chamad
 
 ## Próximos passos
 
-- Outbox para `OrderPaid`.
+- Outbox para `PedidoPago`.
 - Reconciliação de cobranças pendentes.
 - OpenTelemetry e métricas de resiliencia.
 - Testcontainers para integração real com PostgreSQL.
