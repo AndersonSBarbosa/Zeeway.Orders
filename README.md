@@ -11,8 +11,8 @@ API de pedidos em ASP.NET Core 8 com PostgreSQL, EF Core e integracao resiliente
 - `tests/Zeeway.Pedidos.UnitTests` - testes unitarios.
 - `tests/Zeeway.Pedidos.IntegrationTests` - testes da API.
 
-Os nomes internos foram padronizados para `Pedidos` e `Pagamentos`; rotas, JSON,
-configuracoes e nomes de tabelas/colunas existentes foram mantidos para preservar compatibilidade.
+Os nomes internos foram padronizados para `Pedidos` e `Pagamentos`; os contratos
+JSON e os nomes de tabelas/colunas existentes foram mantidos para preservar compatibilidade.
 
 ## Como executar
 
@@ -39,12 +39,15 @@ dotnet test Zeeway.Pedidos.sln
 
 ## Endpoints
 
-- `POST /orders` - requer `Idempotency-Key`
-- `GET /orders/{id}`
-- `GET /orders?status=Pending&page=1&pageSize=20`
+- `POST /pedidos` (alias compativel: `/orders`) - requer `Idempotency-Key`
+- `GET /pedidos/{id}` (alias compativel: `/orders/{id}`)
+- `GET /pedidos?status=Pending&page=1&pageSize=20` (alias compativel: `/orders`)
 - `POST /webhooks/payments`
 - `GET /health/live`
 - `GET /health/ready`
+
+O filtro de status aceita `Pending`, `Paid`, `Failed` e os nomes localizados
+`Pendente`, `Pago`, `Falha`. As respostas continuam usando os valores legados.
 
 Exemplo:
 
