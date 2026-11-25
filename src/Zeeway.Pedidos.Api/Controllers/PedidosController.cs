@@ -17,32 +17,40 @@ public sealed class PedidosController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreatePedidoRequest request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.CustomerEmail))
-            return BadRequest();
-        if (request.Items is null || request.Items.Count == 0)
-            return BadRequest();
-        if (request.Items.Any(x => x is null
-            || string.IsNullOrWhiteSpace(x.Name)
-            || x.Quantity <= 0
-            || x.UnitPrice < 0))
-            return BadRequest();
 
-        if (!Request.Headers.TryGetValue("Idempotency-Key", out var idempotencyHeader)
-            || string.IsNullOrWhiteSpace(idempotencyHeader.First()))
+        try
         {
-            return Problem(statusCode: StatusCodes.Status400BadRequest,
-                title: "Chave Ausente",
-                detail: "Chave obrigatoria.");
+            if (string.IsNullOrWhiteSpace(request.CustomerEmail))
+                return BadRequest();
+            if (request.Items is null || request.Items.Count == 0)
+                return BadRequest();
+            if (request.Items.Any(x => x is null
+                || string.IsNullOrWhiteSpace(x.Name)
+                || x.Quantity <= 0
+                || x.UnitPrice < 0))
+                return BadRequest();
+
+            if (!Request.Headers.TryGetValue("Idempotency-Key", out var idempotencyHeader)
+                || string.IsNullOrWhiteSpace(idempotencyHeader.First()))
+            {
+                return Problem(statusCode: StatusCodes.Status400BadRequest,
+                    title: "Chave Ausente",
+                    detail: "Chave obrigatoria.");
+            }
+
+            var pedido = await _pedidos.CreateAsync(
+                new CreatePedidoCommand(
+                    request.CustomerEmail,
+                    request.Items.Select(x => new CreatePedidoItemCommand(x.Name, x.Quantity, x.UnitPrice)).ToList(),
+                    idempotencyHeader.First()!.Trim()),
+                cancellationToken);
+
+            return StatusCode(StatusCodes.Status201Created, Map(pedido));
         }
-
-        var pedido = await _pedidos.CreateAsync(
-            new CreatePedidoCommand(
-                request.CustomerEmail,
-                request.Items.Select(x => new CreatePedidoItemCommand(x.Name, x.Quantity, x.UnitPrice)).ToList(),
-                idempotencyHeader.First()!.Trim()),
-            cancellationToken);
-
-        return StatusCode(StatusCodes.Status201Created, Map(pedido));
+        catch (Exception)
+        {
+            throw;
+        }
     }
 
     [HttpGet("{id:guid}")]
@@ -55,29 +63,35 @@ public sealed class PedidosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedPedidosResponse>> List(
-        [FromQuery] string? status,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PagedPedidosResponse>> List([FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        PedidoStatus? parsedStatus = null;
-        if (!string.IsNullOrWhiteSpace(status))
-        {
-            if (!TryParseStatus(status, out var parsedStatusValue))
-                return BadRequest(new ProblemDetails
-                {
-                    Status = StatusCodes.Status400BadRequest,
-                    Title = "Estado do pedido invalido",
-                    Detail = "Use Pending, Paid, Failed, Pendente, Pago ou Falha."
-                });
-            parsedStatus = parsedStatusValue;
-        }
 
-        var result = await _pedidos.ListAsync(parsedStatus, page, pageSize, cancellationToken);
-        return Ok(new PagedPedidosResponse(
-            result.Items.Select(Map).ToList(), result.Page, result.PageSize, result.Total));
+        try
+        {
+            PedidoStatus? parsedStatus = null;
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                if (!TryParseStatus(status, out var parsedStatusValue))
+                    return BadRequest(new ProblemDetails
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = "Estado do pedido invalido",
+                        Detail = "Use Pending, Paid, Failed, Pendente, Pago ou Falha."
+                    });
+                parsedStatus = parsedStatusValue;
+            }
+
+            var result = await _pedidos.ListAsync(parsedStatus, page, pageSize, cancellationToken);
+            return Ok(new PagedPedidosResponse(
+                result.Items.Select(Map).ToList(), result.Page, result.PageSize, result.Total));
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
+
+       
 
     private static PedidoResponse Map(Pedido pedido) => new(
         pedido.Id,
