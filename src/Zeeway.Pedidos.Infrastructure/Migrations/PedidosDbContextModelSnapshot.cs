@@ -28,12 +28,13 @@ namespace Zeeway.Pedidos.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("PedidoId")
                         .HasColumnType("uuid")
                         .HasColumnName("OrderId");
+
+                    b.Property<DateTimeOffset>("DataCreated")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAt");
 
                     b.HasKey("Key");
 
@@ -50,13 +51,19 @@ namespace Zeeway.Pedidos.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CustomerEmail")
+                    b.Property<string>("EmailCliente")
                         .IsRequired()
                         .HasMaxLength(320)
-                        .HasColumnType("character varying(320)");
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("CustomerEmail");
+
+                    b.Property<DateTimeOffset>("DataCreated")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<DateTimeOffset>("DataUpdated")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAt");
 
                     b.Property<string>("PagamentoId")
                         .HasMaxLength(128)
@@ -68,12 +75,10 @@ namespace Zeeway.Pedidos.Infrastructure.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
 
-                    b.Property<decimal>("TotalAmount")
+                    b.Property<decimal>("ValorTotal")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("TotalAmount");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -92,21 +97,24 @@ namespace Zeeway.Pedidos.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("Name");
 
                     b.Property<Guid>("PedidoId")
                         .HasColumnType("uuid")
                         .HasColumnName("OrderId");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("integer")
+                        .HasColumnName("Quantity");
 
-                    b.Property<decimal>("UnitPrice")
+                    b.Property<decimal>("PrecoUnitario")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("UnitPrice");
 
                     b.HasKey("Id");
 
@@ -118,25 +126,29 @@ namespace Zeeway.Pedidos.Infrastructure.Migrations
 
             modelBuilder.Entity("Zeeway.Pedidos.Domain.PagamentoEventRecord", b =>
                 {
-                    b.Property<string>("EventId")
+                    b.Property<string>("EventoId")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("EventId");
 
                     b.Property<Guid>("PedidoId")
                         .HasColumnType("uuid")
                         .HasColumnName("OrderId");
 
-                    b.Property<DateTimeOffset>("ReceivedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTimeOffset>("DataRecebimento")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ReceivedAt");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("Tipo")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("Type");
 
-                    b.HasKey("EventId");
+                    b.HasKey("EventoId");
 
-                    b.HasIndex("EventId")
+                    b.HasIndex("EventoId")
+                        .HasDatabaseName("IX_payment_events_EventId")
                         .IsUnique();
 
                     b.ToTable("payment_events", (string)null);

@@ -27,7 +27,7 @@ public sealed class WebhooksController : ControllerBase
         var body = await reader.ReadToEndAsync(cancellationToken);
         var secret = _configuration["PaymentGateway:WebhookSecret"];
         if (string.IsNullOrWhiteSpace(secret))
-            return Problem(statusCode: 500, title: "Webhook secret não está configurao.");
+            return Problem(statusCode: 500, title: "Webhook secret is not configured.");
 
         var signature = Request.Headers["X-Signature-SHA256"].FirstOrDefault()
             ?? Request.Headers["X-Payment-Signature"].FirstOrDefault();
@@ -37,21 +37,33 @@ public sealed class WebhooksController : ControllerBase
         string? eventId;
         Guid pedidoId;
         string? type;
-        using (var payload = System.Text.Json.JsonDocument.Parse(body))
+        try
         {
+            using var payload = System.Text.Json.JsonDocument.Parse(body);
             var root = payload.RootElement;
+            if (root.ValueKind != System.Text.Json.JsonValueKind.Object)
+                return BadRequest();
+
             eventId = root.TryGetProperty("event_id", out var eventElement)
-                ? eventElement.GetString()
-                : null;
+                && eventElement.ValueKind == System.Text.Json.JsonValueKind.String
+                    ? eventElement.GetString()
+                    : null;
             pedidoId = root.TryGetProperty("order_id", out var pedidoElement)
+                && pedidoElement.ValueKind == System.Text.Json.JsonValueKind.String
                 && Guid.TryParse(pedidoElement.GetString(), out var parsedPedidoId)
                     ? parsedPedidoId
                     : Guid.Empty;
             type = root.TryGetProperty("type", out var typeElement)
-                ? typeElement.GetString()
-                : null;
+                && typeElement.ValueKind == System.Text.Json.JsonValueKind.String
+                    ? typeElement.GetString()
+                    : null;
         }
-        if (eventId is null || pedidoId == Guid.Empty)
+        catch (System.Text.Json.JsonException)
+        {
+            return BadRequest();
+        }
+
+        if (string.IsNullOrWhiteSpace(eventId) || pedidoId == Guid.Empty)
             return BadRequest();
 
         if (await _db.EventosPagamento.AnyAsync(x => x.EventoId == eventId, cancellationToken))
@@ -70,27 +82,30 @@ public sealed class WebhooksController : ControllerBase
             };
             if (target is null) return BadRequest();
 
-            if (pedido.AplicarPagamentoStatus(target.Value))
+            pedido.AplicarPagamentoStatus(target.Value);
+            await _db.EventosPagamento.AddAsync(
+                new PagamentoEventRecord(eventId, pedido.Id, type!, DateTimeOffset.UtcNow),
+                cancellationToken);
+            try
             {
-                await _db.EventosPagamento.AddAsync(
-                    new PagamentoEventRecord(eventId, pedido.Id, type!), cancellationToken);
                 await _db.SaveChangesAsync(cancellationToken);
+                return Ok();
             }
-            else
+            catch (DbUpdateException)
             {
-                await _db.EventosPagamento.AddAsync(
-                    new PagamentoEventRecord(eventId, pedido.Id, type!), cancellationToken);
-                await _db.SaveChangesAsync(cancellationToken);
+                if (await _db.EventosPagamento.AsNoTracking()
+                    .AnyAsync(x => x.EventoId == eventId, cancellationToken))
+                    return Ok();
+                throw;
             }
-            return Ok();
         }
         catch (InvalidOperationException)
         {
             return Conflict(new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
-                Title = "pagamento inválida",
-                Detail = "O Pedido já se encontra num estado final."
+                Title = "Invalid payment transition",
+                Detail = "The pedido is already in a final state."
             });
         }
     }

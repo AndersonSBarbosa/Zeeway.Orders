@@ -6,6 +6,7 @@ namespace Zeeway.Pedidos.Api;
 
 [ApiController]
 [Route("pedidos")]
+[Route("orders")]
 public sealed class PedidosController : ControllerBase
 {
     private readonly IPedidoService _pedidos;
@@ -21,7 +22,8 @@ public sealed class PedidosController : ControllerBase
             return BadRequest();
         if (request.Items is null || request.Items.Count == 0)
             return BadRequest();
-        if (request.Items.Any(x => string.IsNullOrWhiteSpace(x.Name)
+        if (request.Items.Any(x => x is null
+            || string.IsNullOrWhiteSpace(x.Name)
             || x.Quantity <= 0
             || x.UnitPrice < 0))
             return BadRequest();
@@ -63,12 +65,12 @@ public sealed class PedidosController : ControllerBase
         PedidoStatus? parsedStatus = null;
         if (!string.IsNullOrWhiteSpace(status))
         {
-            if (!Enum.TryParse<PedidoStatus>(status, true, out var parsedStatusValue))
+            if (!TryParseStatus(status, out var parsedStatusValue))
                 return BadRequest(new ProblemDetails
                 {
                     Status = StatusCodes.Status400BadRequest,
-                    Title = "Estado do pedido inválido",
-                    Detail = $"O Status deve ser um dos seguintes: {string.Join(", ", Enum.GetNames<PedidoStatus>())}"
+                    Title = "Estado do pedido invalido",
+                    Detail = "Use Pending, Paid, Failed, Pendente, Pago ou Falha."
                 });
             parsedStatus = parsedStatusValue;
         }
@@ -82,9 +84,32 @@ public sealed class PedidosController : ControllerBase
         pedido.Id,
         pedido.ValorTotal,
         pedido.EmailCliente,
-        pedido.Status.ToString(),
+        MapStatus(pedido.Status),
         pedido.PagamentoId,
         pedido.DataCreated,
         pedido.DataUpdated,
         pedido.Items.Select(x => new PedidoItemResponse(x.Id, x.Nome, x.Quantidade, x.PrecoUnitario)).ToList());
+
+    private static bool TryParseStatus(string status, out PedidoStatus parsed) =>
+        status.Trim().ToLowerInvariant() switch
+        {
+            "pending" or "pendente" => SetStatus(PedidoStatus.Pendente, out parsed),
+            "paid" or "pago" => SetStatus(PedidoStatus.Pago, out parsed),
+            "failed" or "falha" => SetStatus(PedidoStatus.Falha, out parsed),
+            _ => SetStatus(default, out parsed, false)
+        };
+
+    private static bool SetStatus(PedidoStatus status, out PedidoStatus parsed, bool success = true)
+    {
+        parsed = status;
+        return success;
+    }
+
+    private static string MapStatus(PedidoStatus status) => status switch
+    {
+        PedidoStatus.Pendente => "Pending",
+        PedidoStatus.Pago => "Paid",
+        PedidoStatus.Falha => "Failed",
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown pedido status.")
+    };
 }
