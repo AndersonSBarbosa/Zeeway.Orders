@@ -90,19 +90,26 @@ public sealed class PedidosController : ControllerBase
         pedido.DataUpdated,
         pedido.Items.Select(x => new PedidoItemResponse(x.Id, x.Nome, x.Quantidade, x.PrecoUnitario)).ToList());
 
-    private static bool TryParseStatus(string status, out PedidoStatus parsed) =>
-        status.Trim().ToLowerInvariant() switch
-        {
-            "pending" or "pendente" => SetStatus(PedidoStatus.Pendente, out parsed),
-            "paid" or "pago" => SetStatus(PedidoStatus.Pago, out parsed),
-            "failed" or "falha" => SetStatus(PedidoStatus.Falha, out parsed),
-            _ => SetStatus(default, out parsed, false)
-        };
-
-    private static bool SetStatus(PedidoStatus status, out PedidoStatus parsed, bool success = true)
+    private static bool TryParseStatus(string status, out PedidoStatus parsed)
     {
-        parsed = status;
-        return success;
+        switch (status.Trim().ToLowerInvariant())
+        {
+            case "pending":
+            case "pendente":
+                parsed = PedidoStatus.Pendente;
+                return true;
+            case "paid":
+            case "pago":
+                parsed = PedidoStatus.Pago;
+                return true;
+            case "failed":
+            case "falha":
+                parsed = PedidoStatus.Falha;
+                return true;
+            default:
+                parsed = default;
+                return false;
+        }
     }
 
     private static string MapStatus(PedidoStatus status) => status switch

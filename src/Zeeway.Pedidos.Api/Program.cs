@@ -54,7 +54,7 @@ app.UseExceptionHandler(exceptionApp =>
         await context.Response.WriteAsJsonAsync(new ProblemDetails
         {
             Status = status,
-            Title = status == StatusCodes.Status500InternalServerError ? "Erro inesperado do servidor" : "A solicita��o n�o p�de ser conclu�da",
+            Title = status == StatusCodes.Status500InternalServerError ? "Erro inesperado do servidor" : "A solicitacao nao pode ser concluida",
             Detail = status == StatusCodes.Status500InternalServerError
                 ? "Ocorreu um erro inesperado."
                 : feature?.Error.Message
