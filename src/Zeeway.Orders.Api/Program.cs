@@ -54,9 +54,9 @@ app.UseExceptionHandler(exceptionApp =>
         await context.Response.WriteAsJsonAsync(new ProblemDetails
         {
             Status = status,
-            Title = status == StatusCodes.Status500InternalServerError ? "Unexpected server error" : "Request could not be completed",
+            Title = status == StatusCodes.Status500InternalServerError ? "Erro inesperado do servidor" : "A solicitação não pôde ser concluída",
             Detail = status == StatusCodes.Status500InternalServerError
-                ? "An unexpected error occurred."
+                ? "Ocorreu um erro inesperado."
                 : feature?.Error.Message
         });
     });
