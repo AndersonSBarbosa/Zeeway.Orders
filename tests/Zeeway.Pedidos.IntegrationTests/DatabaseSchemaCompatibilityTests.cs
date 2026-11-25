@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Zeeway.Pedidos.Domain;
-using Zeeway.Pedidos.Infrastructure;
+using Zeeway.Pedidos.Infrastructure.db;
 
 namespace Zeeway.Pedidos.IntegrationTests;
 

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Zeeway.Pedidos.Infrastructure;
+using Zeeway.Pedidos.Infrastructure.db;
 
 namespace Zeeway.Pedidos.IntegrationTests;
 

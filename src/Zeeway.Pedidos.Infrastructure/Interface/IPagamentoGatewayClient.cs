@@ -1,4 +1,6 @@
-namespace Zeeway.Pedidos.Infrastructure;
+using Zeeway.Pedidos.Infrastructure.Model;
+
+namespace Zeeway.Pedidos.Infrastructure.Interface;
 
 public interface IPagamentoGatewayClient
 {

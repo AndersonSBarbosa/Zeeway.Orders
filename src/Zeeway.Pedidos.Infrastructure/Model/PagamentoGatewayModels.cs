@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Zeeway.Pedidos.Infrastructure;
+namespace Zeeway.Pedidos.Infrastructure.Model;
 
 public sealed record CreatePagamentoRequest(
     [property: JsonPropertyName("orderId")] Guid PedidoId,

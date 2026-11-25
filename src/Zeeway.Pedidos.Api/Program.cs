@@ -3,7 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zeeway.Pedidos.Api;
 using Zeeway.Pedidos.Infrastructure;
+using Zeeway.Pedidos.Infrastructure.db;
+using Zeeway.Pedidos.Infrastructure.Interface;
+using Zeeway.Pedidos.Infrastructure.Model;
 using Zeeway.Pedidos.Service;
+using Zeeway.Pedidos.Service.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 

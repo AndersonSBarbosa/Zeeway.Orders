@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using Zeeway.Pedidos.Infrastructure.Interface;
+using Zeeway.Pedidos.Infrastructure.Model;
 
 namespace Zeeway.Pedidos.Infrastructure;
 

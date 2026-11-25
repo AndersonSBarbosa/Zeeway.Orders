@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zeeway.Pedidos.Domain;
-using Zeeway.Pedidos.Infrastructure;
+using Zeeway.Pedidos.Infrastructure.db;
+using Zeeway.Pedidos.Infrastructure.Interface;
+using Zeeway.Pedidos.Infrastructure.Model;
+using Zeeway.Pedidos.Service.Interface;
 
 namespace Zeeway.Pedidos.Service;
 

@@ -1,6 +1,6 @@
 using Zeeway.Pedidos.Domain;
 
-namespace Zeeway.Pedidos.Service;
+namespace Zeeway.Pedidos.Service.Interface;
 
 public interface IPedidoService
 {

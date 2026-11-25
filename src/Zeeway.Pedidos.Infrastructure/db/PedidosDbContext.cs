@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zeeway.Pedidos.Domain;
 
-namespace Zeeway.Pedidos.Infrastructure;
+namespace Zeeway.Pedidos.Infrastructure.db;
 
 public sealed class PedidosDbContext : DbContext
 {

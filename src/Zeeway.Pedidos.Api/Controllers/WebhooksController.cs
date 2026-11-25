@@ -3,7 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zeeway.Pedidos.Domain;
-using Zeeway.Pedidos.Infrastructure;
+using Zeeway.Pedidos.Infrastructure.db;
 
 namespace Zeeway.Pedidos.Api;
 

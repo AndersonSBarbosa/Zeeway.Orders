@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Zeeway.Pedidos.Domain;
-using Zeeway.Pedidos.Service;
+using Zeeway.Pedidos.Service.Interface;
 
 namespace Zeeway.Pedidos.Api;
 
