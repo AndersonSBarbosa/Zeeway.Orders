@@ -90,6 +90,48 @@ public sealed class PedidosApiIntegrationTests : IClassFixture<PedidosApiFactory
         var updated = await client.GetFromJsonAsync<JsonElement>($"/orders/{id}");
         Assert.Equal("Paid", updated.GetProperty("status").GetString());
     }
+
+    [Fact]
+    public async Task Malformed_signed_webhook_returns_bad_request()
+    {
+        var client = _factory.CreateClient();
+        const string body = "{";
+        var hash = Convert.ToHexString(HMACSHA256.HashData(
+            Encoding.UTF8.GetBytes("development-webhook-secret"),
+            Encoding.UTF8.GetBytes(body))).ToLowerInvariant();
+
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+        content.Headers.Add("X-Signature-SHA256", hash);
+        var response = await client.PostAsync("/webhooks/payments", content);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Numeric_undefined_status_filter_returns_bad_request()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/pedidos?status=999");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Create_with_null_item_returns_bad_request()
+    {
+        var client = _factory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/pedidos");
+        request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("N"));
+        request.Content = new StringContent(
+            "{\"customerEmail\":\"null-item@example.com\",\"items\":[null]}",
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }
 
 public sealed class PedidosApiFactory : WebApplicationFactory<Program>

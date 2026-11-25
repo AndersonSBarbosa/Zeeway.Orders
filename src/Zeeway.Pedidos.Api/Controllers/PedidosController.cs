@@ -6,7 +6,6 @@ namespace Zeeway.Pedidos.Api;
 
 [ApiController]
 [Route("pedidos")]
-[Route("orders")]
 public sealed class PedidosController : ControllerBase
 {
     private readonly IPedidoService _pedidos;
@@ -117,6 +116,6 @@ public sealed class PedidosController : ControllerBase
         PedidoStatus.Pendente => "Pending",
         PedidoStatus.Pago => "Paid",
         PedidoStatus.Falha => "Failed",
-        _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown pedido status.")
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Não encontrado pedido status.")
     };
 }
