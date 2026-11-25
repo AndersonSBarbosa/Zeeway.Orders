@@ -39,9 +39,9 @@ dotnet test Zeeway.Pedidos.sln
 
 ## Endpoints
 
-- `POST /pedidos` (alias compativel: `/orders`) - requer `Idempotency-Key`
-- `GET /pedidos/{id}` (alias compativel: `/orders/{id}`)
-- `GET /pedidos?status=Pending&page=1&pageSize=20` (alias compativel: `/orders`)
+- `POST /pedidos` - requer `Idempotency-Key`
+- `GET /pedidos/{id}`
+- `GET /pedidos?status=Pending&page=1&pageSize=20`
 - `POST /webhooks/payments`
 - `GET /health/live`
 - `GET /health/ready`

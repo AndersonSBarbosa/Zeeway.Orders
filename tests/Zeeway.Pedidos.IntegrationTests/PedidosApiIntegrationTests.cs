@@ -27,7 +27,7 @@ public sealed class PedidosApiIntegrationTests : IClassFixture<PedidosApiFactory
             Items = new[] { new { Name = "Notebook", Quantity = 1, UnitPrice = 99.90m } }
         };
 
-        using var firstRequest = new HttpRequestMessage(HttpMethod.Post, "/orders");
+        using var firstRequest = new HttpRequestMessage(HttpMethod.Post, "/pedidos");
         firstRequest.Headers.Add("Idempotency-Key", "integration-key");
         firstRequest.Content = JsonContent.Create(request);
 
@@ -40,7 +40,7 @@ public sealed class PedidosApiIntegrationTests : IClassFixture<PedidosApiFactory
         Assert.False(firstJson.TryGetProperty("pagamentoId", out _));
         Assert.Equal($"pay_{id:N}", firstJson.GetProperty("paymentId").GetString());
 
-        using var secondRequest = new HttpRequestMessage(HttpMethod.Post, "/orders");
+        using var secondRequest = new HttpRequestMessage(HttpMethod.Post, "/pedidos");
         secondRequest.Headers.Add("Idempotency-Key", "integration-key");
         secondRequest.Content = JsonContent.Create(request);
         var second = await client.SendAsync(secondRequest);
@@ -48,7 +48,7 @@ public sealed class PedidosApiIntegrationTests : IClassFixture<PedidosApiFactory
         var secondJson = await second.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(id, secondJson.GetProperty("id").GetGuid());
 
-        var get = await client.GetFromJsonAsync<JsonElement>($"/orders/{id}");
+        var get = await client.GetFromJsonAsync<JsonElement>($"/pedidos/{id}");
         Assert.Equal(id, get.GetProperty("id").GetGuid());
         Assert.Equal("Pending", get.GetProperty("status").GetString());
     }
@@ -62,7 +62,7 @@ public sealed class PedidosApiIntegrationTests : IClassFixture<PedidosApiFactory
             CustomerEmail = "webhook@example.com",
             Items = new[] { new { Name = "Keyboard", Quantity = 1, UnitPrice = 40m } }
         };
-        using var create = new HttpRequestMessage(HttpMethod.Post, "/orders");
+        using var create = new HttpRequestMessage(HttpMethod.Post, "/pedidos");
         create.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString("N"));
         create.Content = JsonContent.Create(request);
         var createResponse = await client.SendAsync(create);
@@ -87,7 +87,7 @@ public sealed class PedidosApiIntegrationTests : IClassFixture<PedidosApiFactory
         webhook2.Headers.Add("X-Signature-SHA256", hash);
         Assert.Equal(HttpStatusCode.OK, (await client.PostAsync("/webhooks/payments", webhook2)).StatusCode);
 
-        var updated = await client.GetFromJsonAsync<JsonElement>($"/orders/{id}");
+        var updated = await client.GetFromJsonAsync<JsonElement>($"/pedidos/{id}");
         Assert.Equal("Paid", updated.GetProperty("status").GetString());
     }
 
@@ -131,6 +131,16 @@ public sealed class PedidosApiIntegrationTests : IClassFixture<PedidosApiFactory
         var response = await client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Legacy_orders_route_is_not_exposed()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/orders");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
 
