@@ -27,7 +27,7 @@ public sealed class WebhooksController : ControllerBase
         var body = await reader.ReadToEndAsync(cancellationToken);
         var secret = _configuration["PaymentGateway:WebhookSecret"];
         if (string.IsNullOrWhiteSpace(secret))
-            return Problem(statusCode: 500, title: "Webhook secret is not configured.");
+            return Problem(statusCode: 500, title: "Webhook secret não está configurao.");
 
         var signature = Request.Headers["X-Signature-SHA256"].FirstOrDefault()
             ?? Request.Headers["X-Payment-Signature"].FirstOrDefault();
@@ -89,8 +89,8 @@ public sealed class WebhooksController : ControllerBase
             return Conflict(new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
-                Title = "Invalid payment state transition",
-                Detail = "The order is already in a final state."
+                Title = "pagamento inválida",
+                Detail = "O Pedido já se encontra num estado final."
             });
         }
     }

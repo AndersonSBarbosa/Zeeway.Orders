@@ -5,7 +5,7 @@ using Zeeway.Pedidos.Service;
 namespace Zeeway.Pedidos.Api;
 
 [ApiController]
-[Route("orders")]
+[Route("pedidos")]
 public sealed class PedidosController : ControllerBase
 {
     private readonly IPedidoService _pedidos;
@@ -30,8 +30,8 @@ public sealed class PedidosController : ControllerBase
             || string.IsNullOrWhiteSpace(idempotencyHeader.First()))
         {
             return Problem(statusCode: StatusCodes.Status400BadRequest,
-                title: "Missing Idempotency-Key",
-                detail: "The Idempotency-Key header is required.");
+                title: "Chave Ausente",
+                detail: "Chave obrigatoria.");
         }
 
         var pedido = await _pedidos.CreateAsync(
@@ -67,8 +67,8 @@ public sealed class PedidosController : ControllerBase
                 return BadRequest(new ProblemDetails
                 {
                     Status = StatusCodes.Status400BadRequest,
-                    Title = "Invalid order status",
-                    Detail = $"Status must be one of: {string.Join(", ", Enum.GetNames<PedidoStatus>())}"
+                    Title = "Estado do pedido inválido",
+                    Detail = $"O Status deve ser um dos seguintes: {string.Join(", ", Enum.GetNames<PedidoStatus>())}"
                 });
             parsedStatus = parsedStatusValue;
         }
