@@ -48,19 +48,25 @@ public sealed class PedidoService : IPedidoService
             return await GetExistingPedidoAsync(winner.PedidoId, cancellationToken);
         }
 
+        CreatePagamentoResponse pagamento;
         try
         {
-            var pagamento = await _gateway.CreatePagamentoAsync(
-                new CreatePagamentoRequest(pedido.Id, pedido.TotalAmount, pedido.CustomerEmail),
+            pagamento = await _gateway.CreatePagamentoAsync(
+                new CreatePagamentoRequest(pedido.Id, pedido.ValorTotal, pedido.EmailCliente),
                 cancellationToken);
-            pedido.SetPagamentoId(pagamento.PagamentoId);
-            await _db.SaveChangesAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Falha ao criar pagamento para o pedido {PedidoId}", pedido.Id);
+            return pedido;
         }
 
+        pedido.SetPagamentoId(pagamento.PagamentoId);
+        await _db.SaveChangesAsync(cancellationToken);
         return pedido;
     }
 
@@ -82,8 +88,9 @@ public sealed class PedidoService : IPedidoService
             query = query.Where(x => x.Status == status.Value);
 
         var total = await query.CountAsync(cancellationToken);
-        var pedidos = await query.OrderByDescending(x => x.CreatedAt)
-            .Skip((page - 1) * pageSize)
+        var skip = (int)Math.Min((long)(page - 1) * pageSize, int.MaxValue);
+        var pedidos = await query.OrderByDescending(x => x.DataCreated)
+            .Skip(skip)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 

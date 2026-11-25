@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zeeway.Pedidos.Domain;
 
 namespace Zeeway.Pedidos.Infrastructure;
@@ -14,13 +15,19 @@ public sealed class PedidosDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var statusConverter = new ValueConverter<PedidoStatus, string>(
+            status => StatusToStore(status),
+            status => StatusFromStore(status));
+
         var pedido = modelBuilder.Entity<Pedido>();
         pedido.ToTable("orders");
         pedido.HasKey(x => x.Id);
-        pedido.Property(x => x.EmailCliente).HasMaxLength(320).IsRequired();
-        pedido.Property(x => x.ValorTotal).HasPrecision(18, 2).IsRequired();
-        pedido.Property(x => x.Status).HasConversion<string>().HasMaxLength(16).IsRequired();
+        pedido.Property(x => x.EmailCliente).HasColumnName("CustomerEmail").HasMaxLength(320).IsRequired();
+        pedido.Property(x => x.ValorTotal).HasColumnName("TotalAmount").HasPrecision(18, 2).IsRequired();
+        pedido.Property(x => x.Status).HasConversion(statusConverter).HasMaxLength(16).IsRequired();
         pedido.Property(x => x.PagamentoId).HasColumnName("PaymentId").HasMaxLength(128);
+        pedido.Property(x => x.DataCreated).HasColumnName("CreatedAt");
+        pedido.Property(x => x.DataUpdated).HasColumnName("UpdatedAt");
         pedido.HasMany(x => x.Items).WithOne()
             .HasForeignKey("PedidoId")
             .HasConstraintName("FK_order_items_orders_OrderId")
@@ -30,8 +37,9 @@ public sealed class PedidosDbContext : DbContext
         var item = modelBuilder.Entity<PedidoItem>();
         item.ToTable("order_items");
         item.HasKey(x => x.Id);
-        item.Property(x => x.Nome).HasMaxLength(200).IsRequired();
-        item.Property(x => x.PrecoUnitario).HasPrecision(18, 2).IsRequired();
+        item.Property(x => x.Nome).HasColumnName("Name").HasMaxLength(200).IsRequired();
+        item.Property(x => x.Quantidade).HasColumnName("Quantity");
+        item.Property(x => x.PrecoUnitario).HasColumnName("UnitPrice").HasPrecision(18, 2).IsRequired();
         item.Property<Guid>("PedidoId").HasColumnName("OrderId").ValueGeneratedNever();
         item.HasIndex("PedidoId").HasDatabaseName("IX_order_items_OrderId");
 
@@ -40,16 +48,36 @@ public sealed class PedidosDbContext : DbContext
         idem.HasKey(x => x.Key);
         idem.Property(x => x.Key).HasMaxLength(200);
         idem.Property(x => x.PedidoId).HasColumnName("OrderId");
+        idem.Property(x => x.DataCreated).HasColumnName("CreatedAt");
         idem.HasIndex(x => x.PedidoId)
             .HasDatabaseName("IX_idempotency_records_OrderId")
             .IsUnique();
 
         var evt = modelBuilder.Entity<PagamentoEventRecord>();
         evt.ToTable("payment_events");
-        evt.HasKey(x => x.EventoId);
+        evt.HasKey(x => x.EventoId).HasName("PK_payment_events");
+        evt.Property(x => x.EventoId).HasColumnName("EventId");
         evt.Property(x => x.PedidoId).HasColumnName("OrderId");
-        evt.Property(x => x.EventoId).HasMaxLength(200);
-        evt.Property(x => x.Tipo).HasMaxLength(64).IsRequired();
-        evt.HasIndex(x => x.EventoId).IsUnique();
+        evt.Property(x => x.Tipo).HasColumnName("Type").HasMaxLength(64).IsRequired();
+        evt.Property(x => x.DataRecebimento).HasColumnName("ReceivedAt");
+        evt.HasIndex(x => x.EventoId)
+            .HasDatabaseName("IX_payment_events_EventId")
+            .IsUnique();
     }
+
+    private static string StatusToStore(PedidoStatus status) => status switch
+    {
+        PedidoStatus.Pendente => "Pending",
+        PedidoStatus.Pago => "Paid",
+        PedidoStatus.Falha => "Failed",
+        _ => throw new InvalidOperationException($"Unknown pedido status: {status}.")
+    };
+
+    private static PedidoStatus StatusFromStore(string status) => status switch
+    {
+        "Pending" => PedidoStatus.Pendente,
+        "Paid" => PedidoStatus.Pago,
+        "Failed" => PedidoStatus.Falha,
+        _ => throw new InvalidOperationException($"Unknown stored pedido status: {status}.")
+    };
 }
