@@ -14,7 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
-    options.OperationFilter<IdempotencyKeyHeaderOperationFilter>());
+{
+    options.OperationFilter<IdempotencyKeyHeaderOperationFilter>();
+    options.OperationFilter<WebhookOperationFilter>();
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
 

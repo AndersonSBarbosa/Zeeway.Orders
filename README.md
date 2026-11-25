@@ -100,3 +100,6 @@ Nao implementei Outbox, reconciliação assíncrona ou OpenTelemetry. Uma chamad
 ## Uso de IA
 
 O projeto foi montado com auxílio do Copilot para o esqueleto da solução, entidades, EF Core, endpoints, testes e documentação. O autor revisou e corrigiu a implementação, especialmente tipos de retorno, configuracao EF, idempotencia e migracoes.
+
+
+4bf5e806-12ba-4165-bd71-217a8b674f13
