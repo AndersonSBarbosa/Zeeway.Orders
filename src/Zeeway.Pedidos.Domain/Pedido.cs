@@ -26,20 +26,20 @@ public sealed class Pedido : Base
 
     public void SetPagamentoId(string pagamentoId)
     {
-        if (string.IsNullOrWhiteSpace(pagamentoId)) throw new ArgumentException("Pagamento id é obrigatorio.", nameof(pagamentoId));
+        if (string.IsNullOrWhiteSpace(pagamentoId)) throw new ArgumentException("PagamentoId é obrigatorio.", nameof(pagamentoId));
         PagamentoId = pagamentoId;
         DataUpdated = DateTimeOffset.UtcNow;
     }
 
-    public bool ApplyPagamentoStatus(PedidoStatus targetStatus)
+    public bool AplicarPagamentoStatus(PedidoStatus status)
     {
-        if (targetStatus == Status) return false;
+        if (status == Status) return false;
         if (Status != PedidoStatus.Pendente)
-            throw new InvalidOperationException($"Cannot transition from {Status} to {targetStatus}.");
-        if (targetStatus is not (PedidoStatus.Pago or PedidoStatus.Falha))
-            throw new InvalidOperationException($"Invalid pagamento status: {targetStatus}.");
+            throw new InvalidOperationException($"Cannot transition from {Status} to {status}.");
+        if (status is not (PedidoStatus.Pago or PedidoStatus.Falha))
+            throw new InvalidOperationException($"Invalid pagamento status: {status}.");
 
-        Status = targetStatus;
+        Status = status;
         DataUpdated = DateTimeOffset.UtcNow;
         return true;
     }

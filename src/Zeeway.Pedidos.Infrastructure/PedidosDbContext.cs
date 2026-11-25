@@ -17,8 +17,8 @@ public sealed class PedidosDbContext : DbContext
         var pedido = modelBuilder.Entity<Pedido>();
         pedido.ToTable("orders");
         pedido.HasKey(x => x.Id);
-        pedido.Property(x => x.CustomerEmail).HasMaxLength(320).IsRequired();
-        pedido.Property(x => x.TotalAmount).HasPrecision(18, 2).IsRequired();
+        pedido.Property(x => x.EmailCliente).HasMaxLength(320).IsRequired();
+        pedido.Property(x => x.ValorTotal).HasPrecision(18, 2).IsRequired();
         pedido.Property(x => x.Status).HasConversion<string>().HasMaxLength(16).IsRequired();
         pedido.Property(x => x.PagamentoId).HasColumnName("PaymentId").HasMaxLength(128);
         pedido.HasMany(x => x.Items).WithOne()
@@ -30,8 +30,8 @@ public sealed class PedidosDbContext : DbContext
         var item = modelBuilder.Entity<PedidoItem>();
         item.ToTable("order_items");
         item.HasKey(x => x.Id);
-        item.Property(x => x.Name).HasMaxLength(200).IsRequired();
-        item.Property(x => x.UnitPrice).HasPrecision(18, 2).IsRequired();
+        item.Property(x => x.Nome).HasMaxLength(200).IsRequired();
+        item.Property(x => x.PrecoUnitario).HasPrecision(18, 2).IsRequired();
         item.Property<Guid>("PedidoId").HasColumnName("OrderId").ValueGeneratedNever();
         item.HasIndex("PedidoId").HasDatabaseName("IX_order_items_OrderId");
 
@@ -46,10 +46,10 @@ public sealed class PedidosDbContext : DbContext
 
         var evt = modelBuilder.Entity<PagamentoEventRecord>();
         evt.ToTable("payment_events");
-        evt.HasKey(x => x.EventId);
+        evt.HasKey(x => x.EventoId);
         evt.Property(x => x.PedidoId).HasColumnName("OrderId");
-        evt.Property(x => x.EventId).HasMaxLength(200);
-        evt.Property(x => x.Type).HasMaxLength(64).IsRequired();
-        evt.HasIndex(x => x.EventId).IsUnique();
+        evt.Property(x => x.EventoId).HasMaxLength(200);
+        evt.Property(x => x.Tipo).HasMaxLength(64).IsRequired();
+        evt.HasIndex(x => x.EventoId).IsUnique();
     }
 }

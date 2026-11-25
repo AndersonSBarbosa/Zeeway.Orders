@@ -80,11 +80,11 @@ public sealed class PedidosController : ControllerBase
 
     private static PedidoResponse Map(Pedido pedido) => new(
         pedido.Id,
-        pedido.TotalAmount,
-        pedido.CustomerEmail,
+        pedido.ValorTotal,
+        pedido.EmailCliente,
         pedido.Status.ToString(),
         pedido.PagamentoId,
-        pedido.CreatedAt,
-        pedido.UpdatedAt,
-        pedido.Items.Select(x => new PedidoItemResponse(x.Id, x.Name, x.Quantity, x.UnitPrice)).ToList());
+        pedido.DataCreated,
+        pedido.DataUpdated,
+        pedido.Items.Select(x => new PedidoItemResponse(x.Id, x.Nome, x.Quantidade, x.PrecoUnitario)).ToList());
 }

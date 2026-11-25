@@ -8,32 +8,32 @@ public sealed class PedidoStateMachineTests
     public void Pending_can_transition_to_paid()
     {
         var pedido = CriarPedido();
-        Assert.True(pedido.ApplyPagamentoStatus(PedidoStatus.Paid));
-        Assert.Equal(PedidoStatus.Paid, pedido.Status);
+        Assert.True(pedido.AplicarPagamentoStatus(PedidoStatus.Pago));
+        Assert.Equal(PedidoStatus.Pago, pedido.Status);
     }
 
     [Fact]
     public void Pending_can_transition_to_failed()
     {
         var pedido = CriarPedido();
-        Assert.True(pedido.ApplyPagamentoStatus(PedidoStatus.Failed));
-        Assert.Equal(PedidoStatus.Failed, pedido.Status);
+        Assert.True(pedido.AplicarPagamentoStatus(PedidoStatus.Falha));
+        Assert.Equal(PedidoStatus.Falha, pedido.Status);
     }
 
     [Fact]
     public void Final_status_cannot_change()
     {
         var pedido = CriarPedido();
-        pedido.ApplyPagamentoStatus(PedidoStatus.Paid);
-        Assert.Throws<InvalidOperationException>(() => pedido.ApplyPagamentoStatus(PedidoStatus.Failed));
+        pedido.AplicarPagamentoStatus(PedidoStatus.Pago);
+        Assert.Throws<InvalidOperationException>(() => pedido.AplicarPagamentoStatus(PedidoStatus.Falha));
     }
 
     [Fact]
     public void Duplicate_final_event_is_ignored()
     {
         var pedido = CriarPedido();
-        pedido.ApplyPagamentoStatus(PedidoStatus.Paid);
-        Assert.False(pedido.ApplyPagamentoStatus(PedidoStatus.Paid));
+        pedido.AplicarPagamentoStatus(PedidoStatus.Pago);
+        Assert.False(pedido.AplicarPagamentoStatus(PedidoStatus.Pago));
     }
 
     [Fact]

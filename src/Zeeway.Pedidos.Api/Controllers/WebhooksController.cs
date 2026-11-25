@@ -54,7 +54,7 @@ public sealed class WebhooksController : ControllerBase
         if (eventId is null || pedidoId == Guid.Empty)
             return BadRequest();
 
-        if (await _db.EventosPagamento.AnyAsync(x => x.EventId == eventId, cancellationToken))
+        if (await _db.EventosPagamento.AnyAsync(x => x.EventoId == eventId, cancellationToken))
             return Ok();
 
         var pedido = await _db.Pedidos.SingleOrDefaultAsync(x => x.Id == pedidoId, cancellationToken);
@@ -64,13 +64,13 @@ public sealed class WebhooksController : ControllerBase
         {
             var target = type switch
             {
-                "payment.approved" => PedidoStatus.Paid,
-                "payment.failed" => PedidoStatus.Failed,
+                "payment.approved" => PedidoStatus.Pago,
+                "payment.failed" => PedidoStatus.Falha,
                 _ => (PedidoStatus?)null
             };
             if (target is null) return BadRequest();
 
-            if (pedido.ApplyPagamentoStatus(target.Value))
+            if (pedido.AplicarPagamentoStatus(target.Value))
             {
                 await _db.EventosPagamento.AddAsync(
                     new PagamentoEventRecord(eventId, pedido.Id, type!), cancellationToken);
