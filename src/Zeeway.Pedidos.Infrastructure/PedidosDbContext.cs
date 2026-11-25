@@ -49,6 +49,7 @@ public sealed class PedidosDbContext : DbContext
         idem.Property(x => x.Key).HasMaxLength(200);
         idem.Property(x => x.PedidoId).HasColumnName("OrderId");
         idem.Property(x => x.DataCreated).HasColumnName("CreatedAt");
+        idem.Ignore(x => x.DataUpdated);
         idem.HasIndex(x => x.PedidoId)
             .HasDatabaseName("IX_idempotency_records_OrderId")
             .IsUnique();
@@ -56,7 +57,7 @@ public sealed class PedidosDbContext : DbContext
         var evt = modelBuilder.Entity<PagamentoEventRecord>();
         evt.ToTable("payment_events");
         evt.HasKey(x => x.EventoId).HasName("PK_payment_events");
-        evt.Property(x => x.EventoId).HasColumnName("EventId");
+        evt.Property(x => x.EventoId).HasColumnName("EventId").HasMaxLength(200).IsRequired();
         evt.Property(x => x.PedidoId).HasColumnName("OrderId");
         evt.Property(x => x.Tipo).HasColumnName("Type").HasMaxLength(64).IsRequired();
         evt.Property(x => x.DataRecebimento).HasColumnName("ReceivedAt");
