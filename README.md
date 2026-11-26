@@ -1,15 +1,60 @@
+# BY 
+
+ Anderson Dos Santos Barbosa
+ 📧 andersonbarbosadeveloper@gmail.com
+ 💻 GitHub: AndersonSBarbosa
+ https://www.linkedin.com/in/anderson-dos-santos-barbosa-7bb8a627/
+
+ 
+
 # Zeeway Pedidos
 
 API de pedidos em ASP.NET Core 8 com PostgreSQL, EF Core e integracao resiliente a um gateway ficticio.
 
 ## Estrutura
 
-- `src/Zeeway.Pedidos.Api` - endpoints HTTP e configuracao da aplicacao.
-- `src/Zeeway.Pedidos.Service` - casos de uso e orquestracao de pedidos.
-- `src/Zeeway.Pedidos.Domain` - entidades e regras de dominio.
-- `src/Zeeway.Pedidos.Infrastructure` - persistencia e integracao com gateway.
-- `tests/Zeeway.Pedidos.UnitTests` - testes unitarios.
-- `tests/Zeeway.Pedidos.IntegrationTests` - testes da API.
+```text
+Zeeway.Pedidos.sln
+src/
+├── Zeeway.Pedidos.Api/
+│   ├── Controllers/
+│   ├── Mapping/
+│   ├── Middleware/
+│   ├── Models/
+│   └── Program.cs
+├── Zeeway.Pedidos.Domain/
+│   ├── Base.cs
+│   ├── IdempotencyRecord.cs
+│   ├── PagamentoEventRecord.cs
+│   ├── Pedido.cs
+│   ├── PedidoItem.cs
+│   └── PedidoStatus.cs
+├── Zeeway.Pedidos.Infrastructure/
+│   ├── db/
+│   ├── Interface/
+│   ├── Migrations/
+│   ├── Model/
+│   ├── Repository/
+│   ├── Security/
+│   └── PagamentoGatewayClient.cs
+└── Zeeway.Pedidos.Service/
+    ├── Interface/
+    ├── PagamentoWebhookService.cs
+    └── PedidoService.cs
+tests/
+├── Zeeway.Pedidos.IntegrationTests/
+│   ├── DatabaseSchemaCompatibilityTests.cs
+│   └── PedidosApiIntegrationTests.cs
+└── Zeeway.Pedidos.UnitTests/
+    └── PedidoStateMachineTests.cs
+```
+
+- `Zeeway.Pedidos.Api` - endpoints HTTP, controllers, mapeamento e middleware.
+- `Zeeway.Pedidos.Service` - casos de uso e orquestracao de pedidos e webhooks.
+- `Zeeway.Pedidos.Domain` - entidades e regras de dominio.
+- `Zeeway.Pedidos.Infrastructure` - persistencia, migrations e integracao com gateway.
+- `Zeeway.Pedidos.UnitTests` - testes unitarios.
+- `Zeeway.Pedidos.IntegrationTests` - testes da API e compatibilidade do banco.
 
 Os nomes internos foram padronizados para `Pedidos` e `Pagamentos`; os contratos
 JSON e os nomes de tabelas/colunas existentes foram mantidos para preservar compatibilidade.
@@ -152,7 +197,49 @@ Nao implementei Outbox, reconciliação assíncrona ou OpenTelemetry. Uma chamad
 O projeto foi montado com auxílio do Copilot para o esqueleto da solução, entidades, EF Core, endpoints, testes e documentação.
 
 
-4bf5e806-12ba-4165-bd71-217a8b674f13
+## Evidências
+
+### Criação do pedido
+
+Chave de idempotência usada: `4bf5e806-12ba-4165-bd71-217a8b674f13`
+
+![Requisição de criação do pedido no Swagger](imgDocs/Cretate_01.png)
+
+![Resposta da criação do pedido](imgDocs/create_02.png)
+
+### Listar por status
+
+![Listagem de pedidos filtrada por status](imgDocs/Get_page_status_01.png)
+
+![Parâmetros de paginação e status](imgDocs/Get_page_status_02.png)
+
+![Execução da consulta por status](imgDocs/Get_page_status_03.png)
+
+![Resposta da listagem por status](imgDocs/Get_page_status_04.png)
 
 
+### Buscar por ID do pedido
+
+![Busca de pedido pelo ID](imgDocs/Get_id_01.png)
+
+
+
+### Testes unitários
+
+![Testes unitários executados com sucesso](imgDocs/testeUnitarios.png)
+
+
+## Chave pra usar o Webhook
 8e31315349ecab35c76c0723cccaf5d1d577d4254d97f20038da23c527feddf4
+
+![Testes unitários executados com sucesso](imgDocs/webhook_01.png)
+
+![Testes unitários executados com sucesso](imgDocs/webhook_02.png)
+
+![Testes unitários executados com sucesso](imgDocs/webhook_03.png)
+
+{
+  "EventoId": "evt-swagger-001",
+  "PedidoId": "99f3e793-d4e0-4b18-b4b0-33729705a9d3",
+  "Tipo": "payment.approved"
+}

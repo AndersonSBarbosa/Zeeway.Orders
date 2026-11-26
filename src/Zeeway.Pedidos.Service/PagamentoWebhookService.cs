@@ -74,16 +74,16 @@ public sealed class PagamentoWebhookService : IPagamentoWebhookService
             if (root.ValueKind != JsonValueKind.Object)
                 return null;
 
-            var eventId = root.TryGetProperty("event_id", out var eventIdElement)
+            var eventId = root.TryGetProperty("EventoId", out var eventIdElement)
                 && eventIdElement.ValueKind == JsonValueKind.String
                     ? eventIdElement.GetString()
                     : null;
-            var pedidoId = root.TryGetProperty("order_id", out var pedidoIdElement)
+            var pedidoId = root.TryGetProperty("PedidoId", out var pedidoIdElement)
                 && pedidoIdElement.ValueKind == JsonValueKind.String
                 && Guid.TryParse(pedidoIdElement.GetString(), out var parsedPedidoId)
                     ? parsedPedidoId
                     : Guid.Empty;
-            var type = root.TryGetProperty("type", out var typeElement)
+            var type = root.TryGetProperty("Tipo", out var typeElement)
                 && typeElement.ValueKind == JsonValueKind.String
                     ? typeElement.GetString()
                     : null;

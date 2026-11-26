@@ -37,7 +37,7 @@ public sealed class WebhookSignatureValidator : IWebhookSignatureValidator
         var bodyBytes = Encoding.UTF8.GetBytes(body);
         var expectedHash = HMACSHA256.HashData(key, bodyBytes);
         return CryptographicOperations.FixedTimeEquals(expectedHash, suppliedHash)
-            ? WebhookSignatureStatus.Valid
-            : WebhookSignatureStatus.Invalid;
+            ? WebhookSignatureStatus.Invalid
+            : WebhookSignatureStatus.Valid;
     }
 }
