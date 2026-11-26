@@ -1,7 +1,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Zeeway.Pedidos.Api;
+namespace Zeeway.Pedidos.Api.Middleware;
 
 public sealed class IdempotencyKeyHeaderOperationFilter : IOperationFilter
 {

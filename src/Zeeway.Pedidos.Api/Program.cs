@@ -2,10 +2,14 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zeeway.Pedidos.Api;
+using Zeeway.Pedidos.Api.Middleware;
+using Zeeway.Pedidos.Api.Models;
 using Zeeway.Pedidos.Infrastructure;
 using Zeeway.Pedidos.Infrastructure.db;
 using Zeeway.Pedidos.Infrastructure.Interface;
 using Zeeway.Pedidos.Infrastructure.Model;
+using Zeeway.Pedidos.Infrastructure.Repository;
+using Zeeway.Pedidos.Infrastructure.Security;
 using Zeeway.Pedidos.Service;
 using Zeeway.Pedidos.Service.Interface;
 
@@ -20,6 +24,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddProblemDetails();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddScoped<IPagamentoWebhookService, PagamentoWebhookService>();
+builder.Services.AddScoped<IPagamentoWebhookRepository, PagamentoWebhookRepository>();
+builder.Services.AddSingleton<IWebhookSignatureValidator>(
+    new WebhookSignatureValidator(builder.Configuration["PaymentGateway:WebhookSecret"]));
 
 var connectionString = builder.Configuration.GetConnectionString("Orders");
 

@@ -1,7 +1,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Zeeway.Pedidos.Api;
+namespace Zeeway.Pedidos.Api.Models;
 
 public sealed class WebhookOperationFilter : IOperationFilter
 {
@@ -38,12 +38,12 @@ public sealed class WebhookOperationFilter : IOperationFilter
                     Schema = new OpenApiSchema
                     {
                         Type = "object",
-                        Required = new HashSet<string> { "event_id", "order_id", "type" },
+                        Required = new HashSet<string> { "EventoId", "PedidoId", "Tipo" },
                         Properties = new Dictionary<string, OpenApiSchema>
                         {
-                            ["event_id"] = new() { Type = "string" },
-                            ["order_id"] = new() { Type = "string", Format = "uuid" },
-                            ["type"] = new() { Type = "string" }
+                            ["EventoId"] = new() { Type = "string" },
+                            ["PedidoId"] = new() { Type = "string", Format = "uuid" },
+                            ["Tipo"] = new() { Type = "string" }
                         }
                     }
                 }

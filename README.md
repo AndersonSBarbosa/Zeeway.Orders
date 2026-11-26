@@ -74,6 +74,73 @@ Payload aceito:
 
 Tipos: `payment.approved` e `payment.failed`.
 
+### Executar o webhook localmente
+
+Use um `order_id` de um pedido existente (retornado por `POST /pedidos`). O segredo abaixo e o valor local de desenvolvimento em `appsettings.json`; em outros ambientes, use o segredo configurado para `PaymentGateway:WebhookSecret`.
+
+```powershell
+$base = "http://localhost:5038"
+$pedidoId = "GUID-RETORNADO-PELO-POST-PEDIDOS"
+$secret = "development-webhook-secret"
+
+$body = @{
+    event_id = "evt_$([guid]::NewGuid().ToString('N'))"
+    order_id = $pedidoId
+    type = "payment.approved"
+} | ConvertTo-Json -Compress
+
+$hmac = [System.Security.Cryptography.HMACSHA256]::new(
+    [Text.Encoding]::UTF8.GetBytes($secret)
+)
+try {
+    $signature = [BitConverter]::ToString(
+        $hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($body))
+    ).Replace("-", "").ToLowerInvariant()
+}
+finally {
+    $hmac.Dispose()
+}
+
+curl.exe -X POST "$base/webhooks/payments" `
+    -H "Content-Type: application/json" `
+    -H "X-Signature-SHA256: $signature" `
+    --data-raw $body
+
+Invoke-RestMethod "$base/pedidos/$pedidoId" |
+    Select-Object id, status, paymentId
+```
+
+O corpo usado para calcular a assinatura precisa ser exatamente o mesmo enviado. O esperado e HTTP 200 e status `Paid`. Para testar falha, troque `payment.approved` por `payment.failed`; para testar duplicidade, reenvie o mesmo corpo com a mesma assinatura.
+
+### Enviar pelo Swagger
+
+1. Use `POST /pedidos` no Swagger para criar um pedido e copie o `id` retornado.
+2. Gere a assinatura do corpo exato que sera enviado. No PowerShell, substitua o GUID por esse `id`:
+
+```powershell
+$secret = "development-webhook-secret"
+$body = '{"event_id":"evt-swagger-001","order_id":"GUID-DO-PEDIDO","type":"payment.approved"}'
+
+$hmac = [System.Security.Cryptography.HMACSHA256]::new(
+    [Text.Encoding]::UTF8.GetBytes($secret)
+)
+try {
+    $signature = [BitConverter]::ToString(
+        $hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($body))
+    ).Replace("-", "").ToLowerInvariant()
+}
+finally {
+    $hmac.Dispose()
+}
+
+$signature
+```
+
+3. No `POST /webhooks/payments`, clique em **Try it out**, cole o mesmo JSON de `$body` em uma linha e cole o valor de `$signature` no header `X-Signature-SHA256`.
+4. Execute. O esperado e HTTP 200; consulte `GET /pedidos/{id}` para confirmar `Paid`.
+
+Se alterar qualquer caractere do corpo ou usar outro `event_id`, gere uma nova assinatura. O Swagger mostra o campo, mas nao calcula o HMAC automaticamente.
+
 ## Decisoes
 
 - PostgreSQL foi escolhido por transacoes, indices unicos e concorrencia.

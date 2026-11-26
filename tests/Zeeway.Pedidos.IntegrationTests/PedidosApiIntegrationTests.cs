@@ -108,6 +108,19 @@ public sealed class PedidosApiIntegrationTests : IClassFixture<PedidosApiFactory
     }
 
     [Fact]
+    public async Task Invalid_webhook_signature_returns_unauthorized()
+    {
+        var client = _factory.CreateClient();
+        const string body = "{\"event_id\":\"evt-invalid-signature\",\"order_id\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"type\":\"payment.approved\"}";
+
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+        content.Headers.Add("X-Signature-SHA256", new string('0', 64));
+        var response = await client.PostAsync("/webhooks/payments", content);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Numeric_undefined_status_filter_returns_bad_request()
     {
         var client = _factory.CreateClient();
