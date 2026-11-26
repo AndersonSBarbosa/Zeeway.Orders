@@ -141,32 +141,15 @@ $signature
 
 Se alterar qualquer caractere do corpo ou usar outro `event_id`, gere uma nova assinatura. O Swagger mostra o campo, mas nao calcula o HMAC automaticamente.
 
-## Decisoes
-
-- PostgreSQL foi escolhido por transacoes, indices unicos e concorrencia.
-- A chave de idempotencia e persistida junto ao pedido em transacao unica; repeticoes nao criam outro pedido nem outra cobranca.
-- A maquina de estados permite somente `Pending -> Paid` e `Pending -> Failed`. Webhooks duplicados sao tratados por `event_id`; eventos fora de ordem nao alteram estado final.
-- PostgreSQL `xmin` funciona como token de concorrencia otimista em `Pedido`.
-- O gateway usa timeout, retry com backoff e circuit breaker via `Microsoft.Extensions.Http.Resilience`.
-- Um handler HTTP fake permite demonstrar o fluxo sem dependencia externa.
-- Erros usam `ProblemDetails`. Todas as respostas incluem `X-Correlation-ID`, tambem registrado em logs estruturados.
-- Migrações EF Core são aplicadas na inicialização.
 
 ## Trade-offs
 
 Nao implementei Outbox, reconciliação assíncrona ou OpenTelemetry. Uma chamada de cobrança falha deixa o pedido `Pending`, pois a execução atual é síncrona e não possui worker de recuperação.
 
-## Próximos passos
-
-- Outbox para `PedidoPago`.
-- Reconciliação de cobranças pendentes.
-- OpenTelemetry e métricas de resiliencia.
-- Testcontainers para integração real com PostgreSQL.
-- Mais testes de HMAC e transicoes fora de ordem.
 
 ## Uso de IA
 
-O projeto foi montado com auxílio do Copilot para o esqueleto da solução, entidades, EF Core, endpoints, testes e documentação. O autor revisou e corrigiu a implementação, especialmente tipos de retorno, configuracao EF, idempotencia e migracoes.
+O projeto foi montado com auxílio do Copilot para o esqueleto da solução, entidades, EF Core, endpoints, testes e documentação.
 
 
 4bf5e806-12ba-4165-bd71-217a8b674f13
