@@ -170,3 +170,6 @@ O projeto foi montado com auxílio do Copilot para o esqueleto da solução, ent
 
 
 4bf5e806-12ba-4165-bd71-217a8b674f13
+
+
+8e31315349ecab35c76c0723cccaf5d1d577d4254d97f20038da23c527feddf4
