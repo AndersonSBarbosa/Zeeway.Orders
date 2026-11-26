@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zeeway.Pedidos.Api;
+using Zeeway.Pedidos.Api.Logging;
 using Zeeway.Pedidos.Api.Middleware;
 using Zeeway.Pedidos.Api.Models;
 using Zeeway.Pedidos.Infrastructure;
@@ -14,6 +15,8 @@ using Zeeway.Pedidos.Service;
 using Zeeway.Pedidos.Service.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddProvider(
+    new TextFileLoggerProvider(Path.Combine(AppContext.BaseDirectory, "logs")));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -59,6 +62,15 @@ app.UseExceptionHandler(exceptionApp =>
     exceptionApp.Run(async context =>
     {
         var feature = context.Features.Get<IExceptionHandlerFeature>();
+        if (feature?.Error is { } error)
+        {
+            app.Logger.LogError(
+                error,
+                "Erro nao tratado ao processar {Method} {Path}",
+                context.Request.Method,
+                context.Request.Path);
+        }
+
         var status = feature?.Error switch
         {
             DbUpdateConcurrencyException => StatusCodes.Status409Conflict,

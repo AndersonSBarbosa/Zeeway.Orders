@@ -82,6 +82,13 @@ Testes:
 dotnet test Zeeway.Pedidos.sln
 ```
 
+Logs:
+
+Erros nao tratados e falhas registradas pela aplicacao sao gravados diariamente
+em arquivos `zeeway-AAAA-MM-DD.txt`, dentro da pasta `logs` ao lado dos binarios
+da API. Cada registro inclui data/hora local, categoria (origem), mensagem e,
+quando disponivel, detalhes e stack trace da excecao.
+
 ## Endpoints
 
 - `POST /pedidos` - requer `Idempotency-Key`

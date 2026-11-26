@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Zeeway.Pedidos.Infrastructure.db;
 
 namespace Zeeway.Pedidos.IntegrationTests;
@@ -51,6 +52,28 @@ public sealed class PedidosApiIntegrationTests : IClassFixture<PedidosApiFactory
         var get = await client.GetFromJsonAsync<JsonElement>($"/pedidos/{id}");
         Assert.Equal(id, get.GetProperty("id").GetGuid());
         Assert.Equal("Pending", get.GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public void Error_logs_are_written_to_daily_text_file()
+    {
+        var marker = $"logging-test-{Guid.NewGuid():N}";
+        var logger = _factory.Services
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("Zeeway.Tests.LoggingProbe");
+
+        logger.LogError(new InvalidOperationException(marker), "Falha de teste {Marker}", marker);
+
+        var logPath = Path.Combine(
+            AppContext.BaseDirectory,
+            "logs",
+            $"zeeway-{DateTimeOffset.Now:yyyy-MM-dd}.txt");
+        var content = File.ReadAllText(logPath);
+
+        Assert.Contains(DateTimeOffset.Now.ToString("yyyy-MM-dd"), content);
+        Assert.Contains("Zeeway.Tests.LoggingProbe", content);
+        Assert.Contains(marker, content);
+        Assert.Contains(nameof(InvalidOperationException), content);
     }
 
     [Fact]

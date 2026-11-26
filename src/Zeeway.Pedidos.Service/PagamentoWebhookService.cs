@@ -18,51 +18,45 @@ public sealed class PagamentoWebhookService : IPagamentoWebhookService
         _signatureValidator = signatureValidator;
     }
 
-    public async Task<WebhookProcessingResult> ProcessAsync(string body,string? signature,CancellationToken cancellationToken)
+    public async Task<WebhookProcessingResult> ProcessAsync(
+        string body,
+        string? signature,
+        CancellationToken cancellationToken)
     {
+        var signatureStatus = _signatureValidator.Validate(body, signature);
+        if (signatureStatus == WebhookSignatureStatus.NotConfigured)
+            return WebhookProcessingResult.AssinaturaNaoConfigurada;
+        if (signatureStatus != WebhookSignatureStatus.Valid)
+            return WebhookProcessingResult.AssinaturaInvalida;
+
+        var payload = TryParsePayload(body);
+        if (payload is null)
+            return WebhookProcessingResult.PayloadInvalido;
+
+        if (await _repository.EventExistsAsync(payload.EventId, cancellationToken))
+            return WebhookProcessingResult.Duplicado;
+
+        var pedido = await _repository.GetPedidoAsync(payload.PedidoId, cancellationToken);
+        if (pedido is null)
+            return WebhookProcessingResult.EncomendaNaoEncontrada;
 
         try
         {
-            var signatureStatus = _signatureValidator.Validate(body, signature);
-            if (signatureStatus == WebhookSignatureStatus.NotConfigured)
-                return WebhookProcessingResult.AssinaturaNaoConfigurada;
-            if (signatureStatus != WebhookSignatureStatus.Valid)
-                return WebhookProcessingResult.AssinaturaInvalida;
-
-            var payload = TryParsePayload(body);
-            if (payload is null)
-                return WebhookProcessingResult.PayloadInvalido;
-
-            if (await _repository.EventExistsAsync(payload.EventId, cancellationToken))
-                return WebhookProcessingResult.Duplicado;
-
-            var pedido = await _repository.GetPedidoAsync(payload.PedidoId, cancellationToken);
-            if (pedido is null)
-                return WebhookProcessingResult.EncomendaNaoEncontrada;
-
-            try
-            {
-                pedido.AplicarPagamentoStatus(payload.Status);
-            }
-            catch (InvalidOperationException)
-            {
-                return WebhookProcessingResult.TransicaoDeEstadoInvalida;
-            }
-
-            var evento = new PagamentoEventRecord(
-                payload.EventId,
-                pedido.Id,
-                payload.Type,
-                DateTimeOffset.UtcNow);
-
-            var saved = await _repository.SaveEventAsync(evento, cancellationToken);
-            return saved ? WebhookProcessingResult.Aceite: WebhookProcessingResult.Duplicado;
+            pedido.AplicarPagamentoStatus(payload.Status);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException)
         {
-            throw;
+            return WebhookProcessingResult.TransicaoDeEstadoInvalida;
         }
-        
+
+        var evento = new PagamentoEventRecord(
+            payload.EventId,
+            pedido.Id,
+            payload.Type,
+            DateTimeOffset.UtcNow);
+
+        var saved = await _repository.SaveEventAsync(evento, cancellationToken);
+        return saved ? WebhookProcessingResult.Aceite : WebhookProcessingResult.Duplicado;
     }
 
     private static WebhookPayload? TryParsePayload(string body)
