@@ -73,34 +73,60 @@ public sealed class PedidoService : IPedidoService
         return pedido;
     }
 
-    public Task<Pedido?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
-        _db.Pedidos.Include(x => x.Items)
-            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-
-    public async Task<PagedPedidos> ListAsync(
-        PedidoStatus? status,
-        int page,
-        int pageSize,
-        CancellationToken cancellationToken)
+    public Task<Pedido?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        if (page < 1) page = 1;
-        if (pageSize is < 1 or > 100) pageSize = 20;
+        try
+        {
+            return _db.Pedidos
+                .Include(x => x.Items)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
 
-        var query = _db.Pedidos.Include(x => x.Items).AsNoTracking();
-        if (status.HasValue)
-            query = query.Where(x => x.Status == status.Value);
-
-        var total = await query.CountAsync(cancellationToken);
-        var skip = (int)Math.Min((long)(page - 1) * pageSize, int.MaxValue);
-        var pedidos = await query.OrderByDescending(x => x.DataCreated)
-            .Skip(skip)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return new PagedPedidos(pedidos, page, pageSize, total);
     }
 
-    private async Task<Pedido> GetExistingPedidoAsync(Guid pedidoId, CancellationToken cancellationToken) =>
-        await _db.Pedidos.Include(x => x.Items)
-            .SingleAsync(x => x.Id == pedidoId, cancellationToken);
+    public async Task<PagedPedidos> ListAsync(PedidoStatus? status,int page,int pageSize,CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (page < 1) page = 1;
+            if (pageSize is < 1 or > 100) pageSize = 20;
+
+            var query = _db.Pedidos.Include(x => x.Items).AsNoTracking();
+            if (status.HasValue)
+                query = query.Where(x => x.Status == status.Value);
+
+            var total = await query.CountAsync(cancellationToken);
+            var skip = (int)Math.Min((long)(page - 1) * pageSize, int.MaxValue);
+            var pedidos = await query.OrderByDescending(x => x.DataCreated)
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return new PagedPedidos(pedidos, page, pageSize, total);
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+
+    }
+
+    private async Task<Pedido> GetExistingPedidoAsync(Guid pedidoId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _db.Pedidos.Include(x => x.Items).SingleAsync(x => x.Id == pedidoId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+ 
 }
